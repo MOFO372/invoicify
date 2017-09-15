@@ -27,6 +27,7 @@ public class Invoice {
 	private User createdBy;
 	
 	private String invoiceNumber;
+
 	
 	@OneToMany(mappedBy="invoice", cascade=CascadeType.ALL) //InvoiceLineItem owns invoice since invoice is in the mapped by
 	private List<InvoiceLineItem> lineItems;

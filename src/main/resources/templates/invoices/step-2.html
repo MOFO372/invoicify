@@ -5,7 +5,14 @@
 <title>New Invoice: step 2</title>
 </head>
 <body>
-<h1>Select records to add to invoice:</h1>
+	
+	{{> common/_navigation }}
+	
+	{{#errorMessage}}
+		{{errorMessage}}
+	{{/errorMessage}}
+	
+	<h1>Select records to add to invoice:</h1>
 	<form method="post" action="/invoices/create">
 		<input type="text" name="invoiceNumber" placeholder="invoice number"
 			required>
@@ -27,8 +34,7 @@
 			<tbody>
 				{{#records}}
 				<tr>
-					<td>
-						<input type="checkbox" value="{{id}}" name="recordIds">
+					<td><input type="checkbox" value="{{id}}" name="recordIds">
 					</td>
 					<td>{{ createdOn }}</td>
 					<td>{{ createdBy.username }}</td>

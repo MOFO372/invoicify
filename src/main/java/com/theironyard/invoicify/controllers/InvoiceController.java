@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,35 +55,44 @@ public class InvoiceController {
 	public ModelAndView step2(long clientId) {
 		ModelAndView mv = new ModelAndView("/invoices/step-2"); 
 		mv.addObject("clientId", clientId); 
-		mv.addObject("records", recordRepository.findByClientId(clientId)); 
+		mv.addObject("records", recordRepository.findByClientIdAndLineItemIsNull(clientId)); 
 		return mv; 
 	}
 	
 	@PostMapping("/create")
-	public String createInvoice(Invoice invoice, long clientId, long[] recordIds, Authentication auth) {
+	public ModelAndView createInvoice(Invoice invoice, long clientId, long[] recordIds, Authentication auth) {
 		User creator = (User) auth.getPrincipal();
-		List<BillingRecord> records = recordRepository.findByIdIn(recordIds); 
-		long nowish = Calendar.getInstance().getTimeInMillis();
-		Date now = new Date(nowish);
-		
-		List<InvoiceLineItem> items = new ArrayList<InvoiceLineItem>(); 
-		
-			for(BillingRecord record : records) { //declaring a variable record will then loop over all records declared in the BillingRecord list
-				InvoiceLineItem lineItem = new InvoiceLineItem();
-				lineItem.setBillingRecord(record); 
-				lineItem.setCreatedBy(creator);
-				lineItem.setCreatedOn(now);
-				lineItem.setInvoice(invoice);
-				items.add(lineItem); 
-			}
+		if(recordIds == null) {
+			ModelAndView mv = new ModelAndView("/invoices/step-2"); 
+			mv.addObject("clientId", clientId); 
+			mv.addObject("records", recordRepository.findByClientIdAndLineItemIsNull(clientId)); 
+			mv.addObject("errorMessage", "Please select at least one billing record. Bitch."); 
+			return mv; 
+		} else {
+			List<BillingRecord> records = recordRepository.findByIdIn(recordIds); 
+			long nowish = Calendar.getInstance().getTimeInMillis();
+			Date now = new Date(nowish);
 			
-		invoice.setCompany(companyRepository.findOne(clientId));
-		invoice.setCreatedBy(creator);
-		invoice.setCreatedOn(now);
-		invoice.setLineItems(items);
-		invoiceRepository.save(invoice); 
+			List<InvoiceLineItem> items = new ArrayList<InvoiceLineItem>(); 
+			
+				for(BillingRecord record : records) { //declaring a variable record will then loop over all records declared in the BillingRecord list
+					InvoiceLineItem lineItem = new InvoiceLineItem();
+					lineItem.setBillingRecord(record); 
+					lineItem.setCreatedBy(creator);
+					lineItem.setCreatedOn(now);
+					lineItem.setInvoice(invoice);
+					items.add(lineItem); 
+				}
+				
+			invoice.setCompany(companyRepository.findOne(clientId));
+			invoice.setCreatedBy(creator);
+			invoice.setCreatedOn(now);
+			invoice.setLineItems(items);
+			invoiceRepository.save(invoice); 
+		}
 		
-		return "redirect:/invoices"; 
+		ModelAndView mv = new ModelAndView("redirect:/invoices"); 
+		return mv; 
 	}
 	
 }
