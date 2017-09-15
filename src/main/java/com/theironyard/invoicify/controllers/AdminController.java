@@ -1,6 +1,7 @@
 package com.theironyard.invoicify.controllers;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ public class AdminController {
 
 	private CompanyRepository companyRepo; 
 	
+	
 	public AdminController(CompanyRepository companyRepo) {
 		this.companyRepo = companyRepo; 
 	}
@@ -25,7 +27,7 @@ public class AdminController {
 	//have a form available to add a new company
 	public ModelAndView showCompanies() {
 		ModelAndView mv = new ModelAndView("/companies/companies");
-		mv.addObject("companies", companyRepo.findAll());
+		mv.addObject("companies", companyRepo.findAll(new Sort(Sort.Direction.ASC, "name")));
 		return mv;
 	}
 	
